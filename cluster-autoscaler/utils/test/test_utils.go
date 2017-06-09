@@ -58,11 +58,12 @@ func BuildTestPod(name string, cpu int64, mem int64) *apiv1.Pod {
 }
 
 // BuildTestNode creates a node with specified capacity.
-func BuildTestNode(name string, cpu int64, mem int64) *apiv1.Node {
+func BuildTestNode(name string, millicpu int64, mem int64) *apiv1.Node {
 	node := &apiv1.Node{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:     name,
 			SelfLink: fmt.Sprintf("/api/v1/nodes/%s", name),
+			Labels:   map[string]string{},
 		},
 		Status: apiv1.NodeStatus{
 			Capacity: apiv1.ResourceList{
@@ -71,14 +72,17 @@ func BuildTestNode(name string, cpu int64, mem int64) *apiv1.Node {
 		},
 	}
 
-	if cpu >= 0 {
-		node.Status.Capacity[apiv1.ResourceCPU] = *resource.NewMilliQuantity(cpu, resource.DecimalSI)
+	if millicpu >= 0 {
+		node.Status.Capacity[apiv1.ResourceCPU] = *resource.NewMilliQuantity(millicpu, resource.DecimalSI)
 	}
 	if mem >= 0 {
 		node.Status.Capacity[apiv1.ResourceMemory] = *resource.NewQuantity(mem, resource.DecimalSI)
 	}
 
-	node.Status.Allocatable = node.Status.Capacity
+	node.Status.Allocatable = apiv1.ResourceList{}
+	for k, v := range node.Status.Capacity {
+		node.Status.Allocatable[k] = v
+	}
 
 	return node
 }

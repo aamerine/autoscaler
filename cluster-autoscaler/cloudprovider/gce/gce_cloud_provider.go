@@ -92,6 +92,11 @@ func (gce *GceCloudProvider) NodeGroupForNode(node *apiv1.Node) (cloudprovider.N
 	return mig, err
 }
 
+// Pricing returns pricing model for this cloud provider or error if not available.
+func (gce *GceCloudProvider) Pricing() (cloudprovider.PricingModel, error) {
+	return &GcePriceModel{}, nil
+}
+
 // GceRef contains s reference to some entity in GCE/GKE world.
 type GceRef struct {
 	Project string
@@ -281,7 +286,7 @@ func buildKubeProxy(mig *Mig) *apiv1.Pod {
 					Resources: apiv1.ResourceRequirements{
 						Requests: apiv1.ResourceList{
 							apiv1.ResourceCPU: *resource.NewMilliQuantity(
-								int64(100),
+								int64(KubeProxyCpuRequestMillis),
 								resource.DecimalSI),
 						},
 					},
